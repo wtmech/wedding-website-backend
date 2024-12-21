@@ -27,8 +27,6 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
-console.log('MONGODB_URI:', process.env.MONGO_URI);
-
 // Connect to MongoDB and start server
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
