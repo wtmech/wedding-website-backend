@@ -22,10 +22,10 @@ router.post('/rsvp', [
   body('plusOne.dietaryRestrictions').optional().isString(),
   body('children').optional().isArray(),
   body('children.*.name').optional().isString(),
-  body('children.*.age').optional().isInt({min: 0, max: 5}),
   body('children.*.dietaryRestrictions').optional().isString(),
   body('dietaryRestrictions').optional().isString(),
   body('additionalNotes').optional().isString(),
+  body('invitation').notEmpty().withMessage('Invitation ID is required'),
   validate
 ], rsvpController.createRsvp);
 

@@ -2,7 +2,7 @@ const Invite = require('../models/invites.model');
 
 exports.getInvites = async (req, res) => {
   try {
-    const invites = await Invite.find();
+    const invites = await Invite.find().populate('rsvp');
     res.json(invites);
   } catch (error) {
     console.error('Error fetching invites:', error);
@@ -23,13 +23,19 @@ exports.searchInvite = async (req, res) => {
         { fullName: { $regex: new RegExp('^' + name + '$', 'i') } },
         { possiblePlusOne: { $regex: new RegExp('^' + name + '$', 'i') } }
       ]
-    });
+    }).populate('rsvp');
 
     if (!invite) {
       return res.status(404).json({ error: 'Invitation not found' });
     }
 
-    res.json(invite);
+    // Transform the response to include the attendance status
+    const response = {
+      ...invite.toObject(),
+      rsvp: invite.rsvp ? invite.rsvp.attending : null
+    };
+
+    res.json(response);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

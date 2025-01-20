@@ -12,15 +12,13 @@ exports.getRsvps = async (req, res) => {
 
 exports.createRsvp = async (req, res) => {
   try {
-    const { fullName, email, attending, plusOne, children, dietaryRestrictions, additionalNotes } = req.body;
+    const { fullName, attending, plusOne, children, dietaryRestrictions, additionalNotes } = req.body;
 
     // Check if the invitation exists
     const invite = await Invite.findOne({
       $or: [
         { fullName: { $regex: new RegExp('^' + fullName + '$', 'i') } },
-        {
-          'possiblePlusOne.fullName': { $regex: new RegExp('^' + fullName + '$', 'i') }
-        }
+        { possiblePlusOne: { $regex: new RegExp('^' + fullName + '$', 'i') } }
       ]
     });
     if (!invite) {
@@ -38,16 +36,15 @@ exports.createRsvp = async (req, res) => {
     } else {
       mainInviteeName = fullName;
       plusOneName = invite.fullName;
-      plusOneDietaryRestrictions = undefined; // You might want to store this in the Invite model if needed
+      plusOneDietaryRestrictions = undefined;
     }
 
     // Create a new RSVP
     const newRsvp = new Rsvp({
       invitation: invite._id,
       fullName: mainInviteeName,
-      email,
       attending,
-      isMainInvitee: true, // Always true now, as we're treating the respondent as the main invitee
+      isMainInvitee: true,
       plusOne: plusOneName ? {
         fullName: plusOneName,
         dietaryRestrictions: plusOneDietaryRestrictions
