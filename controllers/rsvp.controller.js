@@ -12,44 +12,25 @@ exports.getRsvps = async (req, res) => {
 
 exports.createRsvp = async (req, res) => {
   try {
-    const { fullName, attending, plusOne, children, dietaryRestrictions, additionalNotes } = req.body;
+    const { invitation, fullName, attending, plusOne, children, dietaryRestrictions, additionalNotes } = req.body;
 
     // Check if the invitation exists
-    const invite = await Invite.findOne({
-      $or: [
-        { fullName: { $regex: new RegExp('^' + fullName + '$', 'i') } },
-        { possiblePlusOne: { $regex: new RegExp('^' + fullName + '$', 'i') } }
-      ]
-    });
+    const invite = await Invite.findById(invitation);
     if (!invite) {
       return res.status(404).json({ error: 'Invitation not found' });
-    }
-
-    const isOriginalMainInvitee = invite.fullName.toLowerCase() === fullName.toLowerCase();
-
-    // If the RSVP is from the plus one, swap the roles
-    let mainInviteeName, plusOneName, plusOneDietaryRestrictions;
-    if (isOriginalMainInvitee) {
-      mainInviteeName = fullName;
-      plusOneName = plusOne ? plusOne.fullName : undefined;
-      plusOneDietaryRestrictions = plusOne ? plusOne.dietaryRestrictions : undefined;
-    } else {
-      mainInviteeName = fullName;
-      plusOneName = invite.fullName;
-      plusOneDietaryRestrictions = undefined;
     }
 
     // Create a new RSVP
     const newRsvp = new Rsvp({
       invitation: invite._id,
-      fullName: mainInviteeName,
+      fullName,
       attending,
-      isMainInvitee: true,
-      plusOne: plusOneName ? {
-        fullName: plusOneName,
-        dietaryRestrictions: plusOneDietaryRestrictions
+      isMainInvitee: invite.fullName.toLowerCase() === fullName.toLowerCase(),
+      plusOne: plusOne ? {
+        fullName: plusOne.fullName,
+        dietaryRestrictions: plusOne.dietaryRestrictions
       } : undefined,
-      children: children,
+      children,
       dietaryRestrictions,
       additionalNotes
     });
